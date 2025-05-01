@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gümüşhane İkizevler Kent Müzesi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body {
+            padding-top: 80px;
+            background-color: #f8f9fa;
+            color: #333;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+        }
+        .navbar {
+            background-color: #2c3e50;
+        }
+        .navbar-brand {
+            color: #fff !important;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+        .navbar-brand img {
+            margin-right: 10px;
+            height: 45px;
+        }
+        .nav-link {
+            color: #fff !important;
+            font-weight: 500;
+        }
+        .nav-link:hover {
+            color: #f39c12 !important;
+        }
+        .hero {
+            padding: 150px 0;
+            text-align: center;
+            background-size: cover;
+            background-position: center;
+            color: #fff;
+            position: relative;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+        .hero-title {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
+        }
+        .hero-subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+        }
+        .hero-btn {
+            background-color: #f39c12;
+            color: #fff;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+        .section {
+            padding: 60px 0;
+        }
+        .section-title {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.8rem;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+        .lead {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 1.2rem;
+            color: #555;
+        }
+        .why-visit-item {
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        #mapid {
+            height: 400px;
+            border-radius: 8px;
+            margin-top: 30px;
+        }
+        footer {
+            background-color: #343a40;
+            color: #f8f9fa;
+            text-align: center;
+            padding: 20px 0;
+        }
+        .comment-section {
+            margin-top: 30px;
+        }
+        .comment-box {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .comment-button-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .comment-button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .comment-button:hover {
+            background-color: #0056b3;
+        }
+        .comment-input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        .comment-box p {
+            margin: 0;
+        }
+        .comments-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+        }
+        .comment-output {
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            padding: 15px;
+            width: 100%;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-top: 10px;
+        }
+        .comment-output p {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('ana_sayfa') }}">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Müze Logosu">
+                Gümüşhane İkizevler Kent Müzesi
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link active" href="{{ url_for('ana_sayfa') }}">Ana Sayfa</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Hakkımızda</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#rezervasyonModal">Rezervasyon Yap</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#kayitModal">Kayıt Ol</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" id="girisYapBtn" data-bs-toggle="modal" data-bs-target="#girisModal">Giriş Yap</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" id="cikisYapBtn" style="display: none;">Çıkış Yap</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_giris') }}">Admin Girişi</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="modal fade" id="girisModal" tabindex="-1" aria-labelledby="girisModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="girisModalLabel">Giriş Yap</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="girisForm">
+                        <div class="mb-3">
+                            <label for="girisEmail" class="form-label">E-posta</label>
+                            <input type="email" class="form-control" id="girisEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="girisSifre" class="form-label">Şifre</label>
+                            <input type="password" class="form-control" id="girisSifre" required>
+                        </div>
+                        <button type="button" class="btn btn-primary" onclick="yonlendirKayitliKullanici()">Giriş Yap</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="kayitModal" tabindex="-1" aria-labelledby="kayitModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="kayitModalLabel">Kayıt Ol</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="kayitForm">
+                        <div class="mb-3">
+                            <label for="isim" class="form-label">İsim</label>
+                            <input type="text" class="form-control" id="isim" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">E-posta</label>
+                            <input type="email" class="form-control" id="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="sifre" class="form-label">Şifre</label>
+                            <input type="password" class="form-control" id="sifre" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Kayıt Ol</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="rezervasyonModal" tabindex="-1" aria-labelledby="rezervasyonModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="rezervasyonModalLabel">Rezervasyon Yap</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="rezervasyonForm">
+                        <div class="mb-3">
+                            <label for="rezervasyonIsim" class="form-label">İsim Soyisim</label>
+                            <input type="text" class="form-control" id="rezervasyonIsim" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="rezervasyonEmail" class="form-label">E-posta</label>
+                            <input type="email" class="form-control" id="rezervasyonEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="rezervasyonTarih" class="form-label">Ziyaret Tarihi</label>
+                            <input type="date" class="form-control" id="rezervasyonTarih" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="rezervasyonSaat" class="form-label">Ziyaret Saati</label>
+                            <input type="time" class="form-control" id="rezervasyonSaat" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="kisiSayisi" class="form-label">Kişi Sayısı</label>
+                            <input type="number" class="form-control" id="kisiSayisi" min="1" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Rezervasyonu Gönder</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <header class="hero" style="background-image: url('{{ url_for('static', filename='img/muze_arkaplan.jpg') }}');">
+        <div class="container hero-content">
+            <h1 class="hero-title">Gümüşhane İkizevler Kent Müzesi</h1>
+            <p class="hero-subtitle">Tarihin ve Kültürün Kalbinde Bir Yolculuk</p>
+            <a href="https://karadeniz.gov.tr/gumushane-ikizevler-kent-muzesi/" class="hero-btn">Daha Fazla Bilgi Edinin</a>
+        </div>
+    </header>
+
+    <section class="container section">
+        <h2 class="section-title">Hakkımızda</h2>
+        <p class="lead">Gümüşhane İkizevler Kent Müzesi, bölgenin kültürünü ve tarihini keşfetmek için harika bir yer.</p>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="why-visit-item">
+                    <h4>Tarihi Zenginlik</h4>
+                    <p>Müzemizde, Gümüşhane'nin geçmişine dair birçok değerli eser bulunmaktadır.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="why-visit-item">
+                    <h4>Görsel Şölen</h4>
+                    <p>Görsel olarak etkileyici sergilerle zenginleştirilmiş bir deneyim sunuyoruz.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="why-visit-item">
+                    <h4>İlgi Çekici Etkinlikler</h4>
+                    <p>Birçok etkinlik ve sergiye ev sahipliği yapan müzemizde zamanın nasıl geçtiğini anlamayacaksınız.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="container section comment-section">
+        <h2 class="section-title">Ziyaretçi Yorumları</h2>
+        <div id="yorumlar">
+        </div>
+        <div class="comment-button-container">
+            <button class="comment-button" onclick="yorumYap()">Yorum Yap</button>
+        </div>
+    </section>
+
+    <section class="container section">
+        <h2 class="section-title">Müze Haritası</h2>
+        <div id="mapid"></div>
+    </section>
+
+    <footer>
+        <p>&copy; 2025 Gümüşhane İkizevler Kent Müzesi. Tüm hakları saklıdır.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        var map = L.map('mapid').setView([40.4637, 29.9872], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        var marker = L.marker([40.4637, 29.9872]).addTo(map);
+        marker.bindPopup("<b>Gümüşhane İkizevler Kent Müzesi</b>").openPopup();
+
+        function yorumYap() {
+            var yorumDiv = document.createElement("div");
+            yorumDiv.classList.add("comment-box");
+            var yorumInput = document.createElement("textarea");
+            yorumInput.classList.add("comment-input");
+            yorumInput.placeholder = "Yorumunuzu buraya yazın...";
+            yorumDiv.appendChild(yorumInput);
+            document.getElementById("yorumlar").appendChild(yorumDiv);
+
+            var yorumButton = document.createElement("button");
+            yorumButton.classList.add("comment-button");
+            yorumButton.textContent = "Yorum Gönder";
+            yorumButton.onclick = function() {
+                var yorumText = yorumInput.value;
+                if (yorumText.trim() !== "") {
+                    var yorumOutput = document.createElement("div");
+                    yorumOutput.classList.add("comment-output");
+                    var yorumPara = document.createElement("p");
+                    yorumPara.textContent = yorumText;
+                    yorumOutput.appendChild(yorumPara);
+                    document.getElementById("yorumlar").appendChild(yorumOutput);
+                    yorumInput.value = "";     // Yorum kutusunu temizle
+                }
+            };
+            yorumDiv.appendChild(yorumButton);
+        }
+
+        function yonlendirKayitliKullanici() {
+            window.location.href = "{{ url_for('kayitli_kullanici') }}";
+        }
+    </script>
+</body>
+</html>
